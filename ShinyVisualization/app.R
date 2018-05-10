@@ -28,7 +28,8 @@ ui <- fluidPage(
   mainPanel(
     tabsetPanel(
       tabPanel("View Dataset",tableOutput("view")),
-      tabPanel("Visualization",plotOutput("plot"))
+      tabPanel("Visualization",plotOutput("plot")),
+      tabPanel("WordCloud",plotOutput("cloud"))
       
       
     )
@@ -39,10 +40,22 @@ ui <- fluidPage(
 
 library(shiny)
 library(ggplot2)
+library(tm)
+library(SnowballC)
+library(wordcloud)
+library(NLP)
+library(RColorBrewer)
+library(dplyr)
 setwd("W:/disneyShinyapp")
 Gross_Income <- read.csv("disney_movies_total_gross.csv",header = TRUE,fileEncoding="UTF-8-BOM")
 Characters <- read.csv("disney-characters.csv",header = TRUE,fileEncoding="UTF-8-BOM")
 Directors <- read.csv("disney-director.csv",header = TRUE,fileEncoding="UTF-8-BOM")
+
+#topData <- Gross_Income[,c(1,5)]
+
+
+
+
   
 # Define server logic required to view th data according to the movie selection and the visualization.
 server <- function(input, output,session) {
@@ -79,6 +92,30 @@ server <- function(input, output,session) {
       xlab(NULL) + ylab(NULL)
     
   })
+  
+  # Top 10 movies based on Gross Salary.
+  
+  
+  output$cloud <- renderPlot({
+    topDataGross <- as.numeric(gsub('[$,]','',Gross_Income$total_gross))
+    
+    
+    Gross_Income$total <- topDataGross
+    
+    
+    datacloud <-head(arrange(Gross_Income,desc(total)), n = 20)
+    
+    datacloud$Rank <- rank(datacloud$total) 
+   
+    
+    wordcloud(words = datacloud$ï..movie_title,freq = datacloud$Rank,min.freq=1,scale = c(1.5,0.2),
+              max.words=200,random.order=FALSE,rot.per=0.5,colors=brewer.pal(8,"Dark2") ) 
+    
+    
+  })
+  
+  
+  
 }
 # Run the application 
 shinyApp(ui = ui, server = server)

@@ -29,7 +29,8 @@ ui <- fluidPage(
     tabsetPanel(
       tabPanel("View Dataset",tableOutput("view")),
       tabPanel("Visualization",plotOutput("plot")),
-      tabPanel("WordCloud",plotOutput("cloud"))
+      tabPanel("WordCloud",plotOutput("cloud")),
+      tabPanel("Top Genre",plotOutput("genre"))
       
       
     )
@@ -97,6 +98,8 @@ server <- function(input, output,session) {
   
   
   output$cloud <- renderPlot({
+    
+    
     topDataGross <- as.numeric(gsub('[$,]','',Gross_Income$total_gross))
     
     
@@ -108,13 +111,30 @@ server <- function(input, output,session) {
     datacloud$Rank <- rank(datacloud$total) 
    
     
-    wordcloud(words = datacloud$ï..movie_title,freq = datacloud$Rank,min.freq=1,scale = c(1.5,0.2),
+    wordcloud(words = datacloud$movie_title,freq = datacloud$Rank,min.freq=1,scale = c(1.5,0.2),
               max.words=200,random.order=FALSE,rot.per=0.5,colors=brewer.pal(8,"Dark2") ) 
     
     
   })
   
+# Top movies genre
   
+  output$genre <- renderPlot({
+    
+ 
+  
+Gross_Income$total_gross <- topDataGross
+  
+  subsetData <- subset(Gross_Income,Gross_Income$genre != "")
+
+  
+  
+  group_genre <- aggregate(total_gross ~ genre,data = subsetData,FUN = sum)
+  group_genre
+  
+  p <- ggplot(group_genre,aes(genre,total_gross)) 
+  p +geom_bar(stat = "identity", aes(fill = genre)) + coord_flip() + theme_minimal()
+  })
   
 }
 # Run the application 

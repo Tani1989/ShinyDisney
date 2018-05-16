@@ -23,7 +23,10 @@ ui <- fluidPage(
    
     selectizeInput('columns','Select The Movie',""),
     
-    selectInput("income","Select Income for genre",choices = c("Total Gross Income","Inflated Gross Income"))
+    selectInput("income","Select Income for genre",choices = c("Total Gross Income","Inflated Gross Income")),
+    
+    selectInput("income1","Select Income for wordcloud",choices = c("Total Gross Income","Inflated Gross Income"))
+    
     
   ),
 # Two different tabs for Viewing dataset and Visualization.
@@ -104,6 +107,8 @@ server <- function(input, output,session) {
   
   output$cloud <- renderPlot({
     
+    if(input$income1 == "Total Gross Income"){
+    
     
 
     topDataGross <- as.numeric(gsub('[$,]','',Gross_Income$total_gross))
@@ -119,6 +124,23 @@ server <- function(input, output,session) {
 
  wordcloud(words = datacloud$movie_title,freq = datacloud$Rank,min.freq=1,scale = c(1.5,0.2),
               max.words=200,random.order=FALSE,rot.per=0.5,colors=brewer.pal(8,"Dark2") ) 
+    }
+    else if (input$income1 == "Inflated Gross Income"){
+      topDataGross <- as.numeric(gsub('[$,]','',Gross_Income$inflation_adjusted_gross))
+      
+      
+      Gross_Income$total <- topDataGross
+      
+      
+      datacloud <-head(arrange(Gross_Income,desc(total)), n = 20)
+      
+      datacloud$Rank <- rank(datacloud$total) 
+      
+      
+      wordcloud(words = datacloud$movie_title,freq = datacloud$Rank,min.freq=1,scale = c(1.5,0.2),
+                max.words=200,random.order=FALSE,rot.per=0.5,colors=brewer.pal(8,"Dark2") ) 
+      
+    }
     
   })
   

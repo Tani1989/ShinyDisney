@@ -21,7 +21,9 @@ ui <- fluidPage(
                 choices = c("Gross Income", "Characters", "Directors")),
     
    
-    selectizeInput('columns','Select The Movie',"")
+    selectizeInput('columns','Select The Movie',""),
+    
+    selectInput("income","Select Income for genre",choices = c("Total Gross Income","Inflated Gross Income"))
     
   ),
 # Two different tabs for Viewing dataset and Visualization.
@@ -52,6 +54,8 @@ Gross_Income <- read.csv("disney_movies_total_gross.csv",header = TRUE,fileEncod
 Characters <- read.csv("disney-characters.csv",header = TRUE,fileEncoding="UTF-8-BOM")
 Directors <- read.csv("disney-director.csv",header = TRUE,fileEncoding="UTF-8-BOM")
 
+
+genre <- Gross_Income[,c("release_date","total_gross")]
 #topData <- Gross_Income[,c(1,5)]
 
 
@@ -81,7 +85,7 @@ server <- function(input, output,session) {
     return(test)
   })
   
-  
+
   
   output$plot <- renderPlot({
    
@@ -96,10 +100,12 @@ server <- function(input, output,session) {
   
   # Top 10 movies based on Gross Salary.
   
+
   
   output$cloud <- renderPlot({
     
     
+
     topDataGross <- as.numeric(gsub('[$,]','',Gross_Income$total_gross))
     
     
@@ -110,18 +116,22 @@ server <- function(input, output,session) {
     
     datacloud$Rank <- rank(datacloud$total) 
    
-    
-    wordcloud(words = datacloud$movie_title,freq = datacloud$Rank,min.freq=1,scale = c(1.5,0.2),
+
+ wordcloud(words = datacloud$movie_title,freq = datacloud$Rank,min.freq=1,scale = c(1.5,0.2),
               max.words=200,random.order=FALSE,rot.per=0.5,colors=brewer.pal(8,"Dark2") ) 
-    
     
   })
   
-# Top movies genre
   
+  
+# Top movies genre according to total gross.
+
+
   output$genre <- renderPlot({
     
- 
+ if(input$income == "Total Gross Income"){
+   topDataGross <- as.numeric(gsub('[$,]','',Gross_Income$total_gross))
+   
   
 Gross_Income$total_gross <- topDataGross
   
@@ -134,6 +144,26 @@ Gross_Income$total_gross <- topDataGross
   
   p <- ggplot(group_genre,aes(genre,total_gross)) 
   p +geom_bar(stat = "identity", aes(fill = genre)) + coord_flip() + theme_minimal()
+ }
+    else if(input$income == "Inflated Gross Income"){
+      topDataGross1 <- as.numeric(gsub('[$,]','',Gross_Income$inflation_adjusted_gross))
+      Gross_Income$inflation_adjusted_gross <- topDataGross1
+      
+      subsetData <- subset(Gross_Income,Gross_Income$genre != "")
+      
+      group_genre <- aggregate(inflation_adjusted_gross ~ genre,data = subsetData,FUN = sum)
+      group_genre
+      
+      p <- ggplot(group_genre,aes(genre,inflation_adjusted_gross)) 
+      p +geom_bar(stat = "identity", aes(fill = genre)) + coord_flip() + theme_minimal()
+      
+      
+    }
+    
+      
+      
+      
+    
   })
   
 }

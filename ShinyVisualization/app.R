@@ -6,18 +6,21 @@
 #
 #    http://shiny.rstudio.com/
 #
-
+install.packages("shinyjs")
+library(shinyjs)
 library(shiny)
 
 # Define UI for application that display the data table according to the movie selection.
 ui <- fluidPage(
-  # Application title
-  headerPanel("View Dataset"),
   
-  # Sidebar with controls to select a dataset and display data according to selection of movie.
+  # Application title
+  headerPanel("Analysis on Disney Movies"),
+  useShinyjs(),
+
+    # Sidebar with controls to select a dataset and display data according to selection of movie.
   sidebarPanel(
     
-    selectInput("dataset", "Select a dataset:", 
+    selectInput("dataset", "Select a dataset:",
                 choices = c("Gross Income", "Characters", "Directors")),
     
    
@@ -32,7 +35,7 @@ ui <- fluidPage(
 # Two different tabs for Viewing dataset and Visualization.
   mainPanel(
     tabsetPanel(
-      tabPanel("View Dataset",tableOutput("view")),
+        tabPanel("View Dataset",tableOutput("view")),
       tabPanel("Visualization",plotOutput("plot")),
       tabPanel("WordCloud",plotOutput("cloud")),
       tabPanel("Top Genre",plotOutput("genre"))
